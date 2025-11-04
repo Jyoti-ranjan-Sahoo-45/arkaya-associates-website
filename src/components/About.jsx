@@ -74,10 +74,18 @@ const About = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="bg-white border-2 border-gray-200 rounded-xl p-6 text-center hover:border-blue-500 transition-all"
+                  className="bg-white border-2 border-gray-200 rounded-xl p-6 text-center hover:border-blue-500 transition-all shadow-sm hover:shadow-lg"
                 >
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <Users className="w-10 h-10 text-white" />
+                  <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden border-4 border-blue-500 flex items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-500">
+                    {leader.photo ? (
+                      <img
+                        src={leader.photo}
+                        alt={leader.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Users className="w-12 h-12 text-white" />
+                    )}
                   </div>
                   <h4 className="font-bold text-lg text-gray-900 mb-1">{leader.name}</h4>
                   <p className="text-sm text-gray-600">{leader.role}</p>

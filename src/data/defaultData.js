@@ -112,9 +112,9 @@ export const defaultData = {
     website: "www.arkayaassociates.com"
   },
   leadership: [
-    { name: "Mr. Niranjan Sahoo", role: "Founder & Managing Partner" },
-    { name: "Mr. Gouri Prasad Nayak", role: "Co-Founder & Partner" },
-    { name: "Mr. Sasmit Kumar Behera", role: "Co-Founder & Partner" }
+    { name: "Mr. Niranjan Sahoo", role: "Founder & Managing Partner", photo: "" },
+    { name: "Mr. Gouri Prasad Nayak", role: "Co-Founder & Partner", photo: "" },
+    { name: "Mr. Sasmit Kumar Behera", role: "Co-Founder & Partner", photo: "" }
   ],
   industries: [
     "Residential Homes",

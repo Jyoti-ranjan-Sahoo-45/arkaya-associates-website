@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Mail, Phone, MapPin, Globe } from 'lucide-react';
-import emailjs from '@emailjs/browser';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 const ContactForm = () => {
@@ -26,25 +25,47 @@ const ContactForm = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      // EmailJS configuration - Replace with your actual IDs
-      // Get these from https://www.emailjs.com/
-      const serviceId = 'YOUR_SERVICE_ID';
-      const templateId = 'YOUR_TEMPLATE_ID';
-      const publicKey = 'YOUR_PUBLIC_KEY';
+      // Check if SMTPJS is loaded
+      if (!window.Email) {
+        throw new Error('SMTPJS library not loaded. Please refresh the page.');
+      }
 
-      await emailjs.send(
-        serviceId,
-        templateId,
-        {
-          from_name: formData.name,
-          from_email: formData.email,
-          phone: formData.phone,
-          service_type: formData.serviceType,
-          message: formData.message,
-          to_email: data.contact.email
-        },
-        publicKey
-      );
+      // SMTP Configuration with GoDaddy settings
+      const emailBody = `
+        <html>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">New Contact Form Submission</h2>
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #1e40af; margin-top: 0;">Contact Information</h3>
+              <p><strong>Name:</strong> ${formData.name}</p>
+              <p><strong>Email:</strong> <a href="mailto:${formData.email}" style="color: #2563eb;">${formData.email}</a></p>
+              <p><strong>Phone:</strong> <a href="tel:${formData.phone}" style="color: #2563eb;">${formData.phone}</a></p>
+              <p><strong>Service Type:</strong> ${formData.serviceType}</p>
+            </div>
+            <div style="background-color: #ffffff; padding: 20px; border-left: 4px solid #2563eb; margin: 20px 0;">
+              <h3 style="color: #1e40af; margin-top: 0;">Message:</h3>
+              <p style="white-space: pre-wrap; background-color: #f9fafb; padding: 15px; border-radius: 4px;">${formData.message || 'No message provided'}</p>
+            </div>
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+            <p style="color: #6b7280; font-size: 12px;">
+              This email was sent from the Arkaya Associates website contact form.<br>
+              Submitted on: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+            </p>
+          </body>
+        </html>
+      `;
+
+      // SMTPJS configuration
+      await window.Email.send({
+        SecureToken: '', // Leave empty for direct SMTP
+        Host: 'smtpout.secureserver.net',
+        Username: 'info@arkayaassociates.com',
+        Password: 'Arkaya@2026',
+        To: data.contact.email || 'info@arkayaassociates.com',
+        From: 'info@arkayaassociates.com',
+        Subject: `New Contact Form Submission - ${formData.serviceType}`,
+        Body: emailBody
+      });
 
       setStatus({
         type: 'success',
@@ -58,10 +79,10 @@ const ContactForm = () => {
         serviceType: 'PM Surya Ghar Yojana'
       });
     } catch (error) {
-      console.error('EmailJS Error:', error);
+      console.error('SMTP Error:', error);
       setStatus({
         type: 'error',
-        message: 'Oops! Something went wrong. Please try again or contact us directly.'
+        message: 'Oops! Something went wrong. Please try again or contact us directly at ' + data.contact.email
       });
     } finally {
       setIsSubmitting(false);

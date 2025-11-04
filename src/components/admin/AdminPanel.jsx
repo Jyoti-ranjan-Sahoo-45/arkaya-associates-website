@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Save, RotateCcw, Plus, Trash2, Edit, Palette } from 'lucide-react';
+import { Save, RotateCcw, Plus, Trash2, Edit, Palette, Users } from 'lucide-react';
 import Sidebar from './Sidebar';
 import ImageUploader from './ImageUploader';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
@@ -450,6 +450,134 @@ const AdminPanel = () => {
     </div>
   );
 
+  // Leadership Section Editor
+  const renderLeadershipEditor = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800">Leadership Team</h2>
+        <button
+          onClick={() => {
+            const newLeader = {
+              id: Date.now(),
+              name: 'New Leader',
+              role: 'Position',
+              photo: ''
+            };
+            setEditData({
+              ...editData,
+              leadership: [...(editData.leadership || []), newLeader]
+            });
+          }}
+          className="flex items-center space-x-2 bg-solar-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Leader</span>
+        </button>
+      </div>
+
+      <div className="space-y-6">
+        {(editData.leadership || []).map((leader, index) => (
+          <div key={leader.id || index} className="bg-gray-50 p-6 rounded-lg space-y-4 border-2 border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-700 text-lg">Leader {index + 1}</h3>
+              <button
+                onClick={() => {
+                  const newLeadership = editData.leadership.filter((l, i) => i !== index);
+                  setEditData({...editData, leadership: newLeadership});
+                }}
+                className="text-red-600 hover:text-red-700 flex items-center space-x-1"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="text-sm">Delete</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                <input
+                  type="text"
+                  value={leader.name}
+                  onChange={(e) => {
+                    const newLeadership = [...editData.leadership];
+                    newLeadership[index].name = e.target.value;
+                    setEditData({...editData, leadership: newLeadership});
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Leader Name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Role/Position</label>
+                <input
+                  type="text"
+                  value={leader.role}
+                  onChange={(e) => {
+                    const newLeadership = [...editData.leadership];
+                    newLeadership[index].role = e.target.value;
+                    setEditData({...editData, leadership: newLeadership});
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="e.g., Founder & Managing Partner"
+                />
+              </div>
+            </div>
+
+            <div>
+              <ImageUploader
+                label="Leader Photo"
+                currentImage={leader.photo || ''}
+                onUpload={(base64) => {
+                  const newLeadership = [...editData.leadership];
+                  newLeadership[index].photo = base64;
+                  setEditData({...editData, leadership: newLeadership});
+                }}
+              />
+            </div>
+
+            {leader.photo && (
+              <div className="flex justify-center">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-500">
+                  <img
+                    src={leader.photo}
+                    alt={leader.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {(!editData.leadership || editData.leadership.length === 0) && (
+        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+          <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 mb-4">No leaders added yet</p>
+          <button
+            onClick={() => {
+              const newLeader = {
+                id: Date.now(),
+                name: 'New Leader',
+                role: 'Position',
+                photo: ''
+              };
+              setEditData({
+                ...editData,
+                leadership: [newLeader]
+              });
+            }}
+            className="flex items-center space-x-2 bg-solar-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition mx-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add First Leader</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   // Contact Section Editor
   const renderContactEditor = () => (
     <div className="space-y-6">
@@ -783,6 +911,7 @@ const AdminPanel = () => {
       case 'counters': return renderCountersEditor();
       case 'projects': return renderProjectsEditor();
       case 'gallery': return renderGalleryEditor();
+      case 'leadership': return renderLeadershipEditor();
       case 'contact': return renderContactEditor();
       case 'branding': return renderBrandingEditor();
       case 'colors': return renderColorsEditor();
