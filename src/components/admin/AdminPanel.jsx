@@ -36,12 +36,15 @@ const AdminPanel = () => {
     
     try {
       await updateData(editData);
-      setSaveMessage('✅ Changes saved! All users will see updates in real-time.');
+      setSaveMessage('✅ Changes saved! All users will see updates in real-time. Check console for confirmation.');
       setTimeout(() => setSaveMessage(''), 5000);
     } catch (error) {
       console.error('Save error:', error);
-      setSaveMessage('❌ Error saving. Check console for details.');
-      setTimeout(() => setSaveMessage(''), 5000);
+      const errorMsg = error.message?.includes('Schema') 
+        ? '❌ Schema not found! Please create siteData entity in Instantd dashboard. See CREATE_SCHEMA.md'
+        : '❌ Error saving. Check console (F12) for details.';
+      setSaveMessage(errorMsg);
+      setTimeout(() => setSaveMessage(''), 8000);
     } finally {
       setIsSaving(false);
     }
@@ -992,9 +995,12 @@ const AdminPanel = () => {
             </motion.div>
           )}
           
-          <div className="mt-3 bg-green-50 border-l-4 border-green-400 p-4 rounded">
-            <p className="text-sm text-green-800">
+          <div className="mt-3 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+            <p className="text-sm text-blue-800 mb-2">
               <strong>✨ Real-time Updates:</strong> Changes are saved to Instantd database. All users will see updates automatically in real-time - no redeploy needed!
+            </p>
+            <p className="text-xs text-blue-600">
+              <strong>Debug Info:</strong> Check browser console (F12) for Instantd connection status. Look for messages like "✅ Updated Instantd record" or "📥 New data received from Instantd!"
             </p>
           </div>
         </div>
