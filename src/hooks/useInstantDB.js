@@ -22,7 +22,7 @@ export const useInstantDB = () => {
 
   // Get the main data record
   const siteDataRecords = data?.siteData || [];
-  const mainRecord = siteDataRecords.find(item => item.id === 'main') || siteDataRecords[0];
+  const mainRecord = siteDataRecords.find(item => item.recordId === 'main') || siteDataRecords[0];
 
   // State to hold current data
   const [currentData, setCurrentData] = useState(() => {
@@ -40,6 +40,13 @@ export const useInstantDB = () => {
 
   // Update when Instantd data changes (real-time sync)
   useEffect(() => {
+    console.log('🔄 Checking for Instantd updates...', {
+      hasMainRecord: !!mainRecord,
+      hasData: !!mainRecord?.data,
+      recordsCount: siteDataRecords.length,
+      isLoading
+    });
+
     if (mainRecord?.data) {
       try {
         const parsed = JSON.parse(mainRecord.data);
@@ -48,26 +55,32 @@ export const useInstantDB = () => {
         
         // Only update if data actually changed
         if (currentString !== parsedString) {
-          console.log('📥 New data received from Instantd!', parsed);
+          console.log('📥 ✨ NEW DATA RECEIVED FROM INSTANTD! ✨');
+          console.log('📥 Changes detected, updating...');
           setCurrentData(parsed);
           localStorage.setItem('arkaya_site_data', JSON.stringify(parsed));
+          console.log('✅ Data updated successfully!');
+        } else {
+          console.log('✅ Data is up to date (no changes detected)');
         }
       } catch (e) {
-        console.error('Error parsing Instantd data:', e);
+        console.error('❌ Error parsing Instantd data:', e);
       }
     } else if (siteDataRecords.length === 0 && !isLoading) {
+      console.log('⚠️ No data found in Instantd, using localStorage');
       // No data in Instantd yet - use localStorage or default
       const stored = localStorage.getItem('arkaya_site_data');
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
           setCurrentData(parsed);
+          console.log('✅ Loaded data from localStorage');
         } catch (e) {
-          console.error('Error parsing localStorage:', e);
+          console.error('❌ Error parsing localStorage:', e);
         }
       }
     }
-  }, [data, mainRecord, siteDataRecords.length, isLoading]);
+  }, [data, mainRecord, siteDataRecords.length, isLoading, currentData]);
 
   const updateData = async (newData) => {
     const dataString = JSON.stringify(newData);
@@ -76,45 +89,51 @@ export const useInstantDB = () => {
     setCurrentData(newData);
     localStorage.setItem('arkaya_site_data', dataString);
     
-    // Save to Instantd - this will create schema automatically if needed
+    // Save to Instantd
     try {
       if (mainRecord?.id) {
         // Update existing
+        console.log('🔄 Updating existing record:', mainRecord.id);
         tx.update({
           siteData: {
             id: mainRecord.id,
+            recordId: 'main',
             data: dataString
           }
         });
-        console.log('✅ Updated Instantd record ID:', mainRecord.id);
-        console.log('📤 Data sent to Instantd:', newData);
+        console.log('✅ Update transaction sent to Instantd');
+        console.log('📤 Data sent:', { id: mainRecord.id, recordId: 'main', dataSize: dataString.length });
       } else {
-        // Create new - schema will be auto-created
-        try {
-          tx.insert({
-            siteData: {
-              id: 'main',
-              data: dataString
-            }
-          });
-          console.log('✅ Created new Instantd record');
-          console.log('📤 Data sent to Instantd:', newData);
-        } catch (insertError) {
-          console.error('❌ Error inserting to Instantd:', insertError);
-          console.error('💡 The siteData schema might not exist yet!');
-          console.error('💡 Please create the siteData entity in Instantd dashboard first.');
-          console.error('💡 See CREATE_SCHEMA.md for instructions.');
-          throw new Error('Schema not found. Please create siteData entity in Instantd dashboard.');
-        }
+        // Create new
+        console.log('🆕 Creating new record');
+        tx.insert({
+          siteData: {
+            recordId: 'main',
+            data: dataString
+          }
+        });
+        console.log('✅ Insert transaction sent to Instantd');
+        console.log('📤 Data sent:', { recordId: 'main', dataSize: dataString.length });
       }
       
-      // Wait a bit for transaction to process
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait for transaction to process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // After saving, check if data appears in query
+      console.log('🔍 Checking if data was saved...');
+      console.log('🔍 Current query data:', {
+        siteDataCount: data?.siteData?.length || 0,
+        hasMainRecord: !!mainRecord,
+        mainRecordId: mainRecord?.id,
+        mainRecordRecordId: mainRecord?.recordId
+      });
+      
       return Promise.resolve();
     } catch (error) {
-      console.error('❌ Error saving to Instantd:', error);
-      console.error('💡 Make sure the siteData entity exists in your Instantd schema');
-      console.error('💡 Check CREATE_SCHEMA.md for setup instructions');
+      console.error('❌ Error in updateData:', error);
+      console.error('💡 The siteData schema might not exist!');
+      console.error('💡 Create it in Instantd dashboard: https://instantdb.com/dashboard');
+      console.error('💡 See CREATE_SCHEMA.md for step-by-step instructions');
       return Promise.reject(error);
     }
   };

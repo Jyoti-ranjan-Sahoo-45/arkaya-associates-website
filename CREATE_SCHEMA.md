@@ -3,9 +3,42 @@
 ## The Problem
 The `siteData` entity doesn't exist in your Instantd database, which is why changes aren't syncing.
 
-## Solution: Create the Schema
+## ✅ QUICK FIX (2 minutes)
 
-### Method 1: Via Instantd Dashboard (Recommended)
+### Step 1: Go to Instantd Dashboard
+1. Open: **https://instantdb.com/dashboard**
+2. Login to your account
+3. Find app: **"Arkaya Associates Website Data"**
+   - App ID: `34717869-71ca-4062-8922-48072f44f7d2`
+
+### Step 2: Create Schema
+1. Click on your app
+2. Go to **"Schema"** tab (or "Data Model")
+3. Click **"Add Entity"** or **"New Entity"**
+4. Entity Name: **`siteData`** (exactly this name)
+5. Add Attribute 1:
+   - Name: **`id`**
+   - Type: **String**
+   - Required: ✅ Yes
+   - Indexed: ✅ Yes  
+   - Unique: ✅ Yes
+6. Add Attribute 2:
+   - Name: **`data`**
+   - Type: **JSON** (or Text if JSON not available)
+   - Required: ✅ Yes
+7. Click **Save** or **Create**
+
+### Step 3: Verify
+1. Go to admin panel
+2. Make a small change
+3. Click "Save to Instantd"
+4. Check console - should see "✅ Updated Instantd record"
+5. Open website in another browser
+6. Changes should appear! 🎉
+
+## Alternative Methods
+
+### Method 1: Via Instantd Dashboard (Recommended - See Quick Fix above)
 
 1. Go to https://instantdb.com/dashboard
 2. Login to your account
