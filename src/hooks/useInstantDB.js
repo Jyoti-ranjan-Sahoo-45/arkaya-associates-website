@@ -1,72 +1,89 @@
-import { useQuery, useTransaction } from '@instantdb/react';
 import { defaultData } from '../data/defaultData';
+import { useState, useEffect } from 'react';
+import { useQuery, useTransaction } from '../providers/InstantProvider';
 
 export const useInstantDB = () => {
-  // Query for site data
-  const { data, isLoading } = useQuery({
-    siteData: {
-      $: {
-        where: { id: 'main' }
-      }
-    }
+  // Query for ALL siteData records - this will auto-create the schema on first insert
+  const { data, isLoading, error } = useQuery({
+    siteData: {}
   });
 
   const tx = useTransaction();
 
-  // Get current data or default
-  let currentData = defaultData;
-  
-  if (data?.siteData?.[0]?.data) {
-    try {
-      currentData = JSON.parse(data.siteData[0].data);
-    } catch (e) {
-      console.error('Error parsing Instantd data:', e);
-      // Fallback to localStorage
-      const stored = localStorage.getItem('arkaya_site_data');
-      if (stored) {
-        try {
-          currentData = JSON.parse(stored);
-        } catch (e2) {
-          console.error('Error parsing localStorage data:', e2);
-        }
-      }
-    }
-  } else {
-    // Fallback to localStorage if no Instantd data
+  // Get the main data record
+  const siteDataRecords = data?.siteData || [];
+  const mainRecord = siteDataRecords.find(item => item.id === 'main') || siteDataRecords[0];
+
+  // State to hold current data
+  const [currentData, setCurrentData] = useState(() => {
+    // Try localStorage first for instant load
     const stored = localStorage.getItem('arkaya_site_data');
     if (stored) {
       try {
-        currentData = JSON.parse(stored);
+        return JSON.parse(stored);
       } catch (e) {
-        console.error('Error parsing localStorage data:', e);
+        console.error('Error parsing localStorage:', e);
       }
     }
-  }
+    return defaultData;
+  });
 
-  const updateData = (newData) => {
+  // Update when Instantd data changes (real-time sync)
+  useEffect(() => {
+    if (mainRecord?.data) {
+      try {
+        const parsed = JSON.parse(mainRecord.data);
+        const currentString = JSON.stringify(currentData);
+        const parsedString = JSON.stringify(parsed);
+        
+        // Only update if data actually changed
+        if (currentString !== parsedString) {
+          console.log('📥 New data received from Instantd!');
+          setCurrentData(parsed);
+          localStorage.setItem('arkaya_site_data', JSON.stringify(parsed));
+        }
+      } catch (e) {
+        console.error('Error parsing Instantd data:', e);
+      }
+    }
+  }, [mainRecord?.data]);
+
+  const updateData = async (newData) => {
     const dataString = JSON.stringify(newData);
     
-    // Save to localStorage immediately for fast access
+    // Update local state immediately
+    setCurrentData(newData);
     localStorage.setItem('arkaya_site_data', dataString);
     
-    // Save to Instantd
-    if (data?.siteData?.[0]) {
-      // Update existing
-      tx.update({
-        siteData: {
-          id: 'main',
-          data: dataString
+    // Save to Instantd - this will create schema automatically if needed
+    return new Promise((resolve, reject) => {
+      try {
+        if (mainRecord?.id) {
+          // Update existing
+          tx.update({
+            siteData: {
+              id: mainRecord.id,
+              data: dataString
+            }
+          });
+          console.log('✅ Updated Instantd record');
+          resolve();
+        } else {
+          // Create new - schema will be auto-created
+          tx.insert({
+            siteData: {
+              id: 'main',
+              data: dataString
+            }
+          });
+          console.log('✅ Created new Instantd record');
+          resolve();
         }
-      });
-    } else {
-      // Create new
-      tx.insert({
-        siteData: {
-          id: 'main',
-          data: dataString
-        }
-      });
-    }
+      } catch (error) {
+        console.error('❌ Error saving to Instantd:', error);
+        reject(error);
+      }
+    });
   };
 
   const resetData = () => {
@@ -74,9 +91,16 @@ export const useInstantDB = () => {
   };
 
   const refreshData = () => {
-    // Data will auto-refresh via useQuery
-    // Just reload to be sure
-    window.location.reload();
+    // Data auto-updates via useQuery, but we can force a refresh
+    if (mainRecord?.data) {
+      try {
+        const parsed = JSON.parse(mainRecord.data);
+        setCurrentData(parsed);
+        localStorage.setItem('arkaya_site_data', JSON.stringify(parsed));
+      } catch (e) {
+        console.error('Error refreshing:', e);
+      }
+    }
   };
 
   return {
@@ -85,7 +109,8 @@ export const useInstantDB = () => {
     resetData,
     refreshData,
     isLoading,
-    isSaving: false
+    isSaving: false,
+    error
   };
 };
 

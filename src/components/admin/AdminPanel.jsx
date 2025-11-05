@@ -8,10 +8,11 @@ import { useInstantDB } from '../../hooks/useInstantDB';
 
 const AdminPanel = () => {
   const navigate = useNavigate();
-  const { data, updateData, resetData, refreshData, isSaving } = useInstantDB();
+  const { data, updateData, resetData, refreshData } = useInstantDB();
   const [activeSection, setActiveSection] = useState('hero');
   const [editData, setEditData] = useState(data);
   const [saveMessage, setSaveMessage] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const isAuth = sessionStorage.getItem('adminAuth');
@@ -30,9 +31,20 @@ const AdminPanel = () => {
   };
 
   const handleSave = async () => {
-    await updateData(editData);
-    setSaveMessage(isSaving ? 'Saving to Instantd...' : 'Changes saved! All users will see updates in real-time.');
-    setTimeout(() => setSaveMessage(''), 5000);
+    setIsSaving(true);
+    setSaveMessage('Saving to Instantd...');
+    
+    try {
+      await updateData(editData);
+      setSaveMessage('✅ Changes saved! All users will see updates in real-time.');
+      setTimeout(() => setSaveMessage(''), 5000);
+    } catch (error) {
+      console.error('Save error:', error);
+      setSaveMessage('❌ Error saving. Check console for details.');
+      setTimeout(() => setSaveMessage(''), 5000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleRefreshData = () => {
