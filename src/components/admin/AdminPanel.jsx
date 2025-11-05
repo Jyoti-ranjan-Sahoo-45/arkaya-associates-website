@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Save, RotateCcw, Plus, Trash2, Edit, Palette, Users } from 'lucide-react';
+import { Save, RotateCcw, Plus, Trash2, Edit, Palette, Users, Download, RefreshCw } from 'lucide-react';
 import Sidebar from './Sidebar';
 import ImageUploader from './ImageUploader';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useInstantDB } from '../../hooks/useInstantDB';
 
 const AdminPanel = () => {
   const navigate = useNavigate();
-  const { data, updateData, resetData } = useLocalStorage();
+  const { data, updateData, resetData, refreshData, isSaving } = useInstantDB();
   const [activeSection, setActiveSection] = useState('hero');
   const [editData, setEditData] = useState(data);
   const [saveMessage, setSaveMessage] = useState('');
@@ -29,9 +29,15 @@ const AdminPanel = () => {
     navigate('/');
   };
 
-  const handleSave = () => {
-    updateData(editData);
-    setSaveMessage('Changes saved successfully!');
+  const handleSave = async () => {
+    await updateData(editData);
+    setSaveMessage(isSaving ? 'Saving to Instantd...' : 'Changes saved! All users will see updates in real-time.');
+    setTimeout(() => setSaveMessage(''), 5000);
+  };
+
+  const handleRefreshData = () => {
+    refreshData();
+    setSaveMessage('Refreshing data from Instantd...');
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
@@ -933,6 +939,14 @@ const AdminPanel = () => {
             <h1 className="text-2xl font-bold text-gray-800">Arkaya Admin Panel</h1>
             <div className="flex items-center space-x-4">
               <button
+                onClick={handleRefreshData}
+                className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition"
+                title="Refresh data from server"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Refresh</span>
+              </button>
+              <button
                 onClick={handleReset}
                 className="flex items-center space-x-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition"
               >
@@ -941,10 +955,11 @@ const AdminPanel = () => {
               </button>
               <button
                 onClick={handleSave}
-                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition shadow-lg"
+                disabled={isSaving}
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition shadow-lg font-semibold disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                <span>Save Changes</span>
+                <span>{isSaving ? 'Saving...' : 'Save to Instantd'}</span>
               </button>
             </div>
           </div>
@@ -953,11 +968,23 @@ const AdminPanel = () => {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-3 bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm"
+              className={`mt-3 px-4 py-2 rounded-lg text-sm ${
+                saveMessage.includes('Error') || saveMessage.includes('Could not')
+                  ? 'bg-red-50 text-red-700 border border-red-200'
+                  : saveMessage.includes('downloaded') || saveMessage.includes('refreshed')
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                  : 'bg-green-50 text-green-700 border border-green-200'
+              }`}
             >
               {saveMessage}
             </motion.div>
           )}
+          
+          <div className="mt-3 bg-green-50 border-l-4 border-green-400 p-4 rounded">
+            <p className="text-sm text-green-800">
+              <strong>✨ Real-time Updates:</strong> Changes are saved to Instantd database. All users will see updates automatically in real-time - no redeploy needed!
+            </p>
+          </div>
         </div>
 
         <div className="p-8">

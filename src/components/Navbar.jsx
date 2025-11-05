@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Sun, Menu, X } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useInstantDB } from '../hooks/useInstantDB';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { data } = useLocalStorage();
+  const { data } = useInstantDB();
 
   useEffect(() => {
     const handleScroll = () => {

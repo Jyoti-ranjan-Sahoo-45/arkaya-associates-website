@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Image as ImageIcon } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useInstantDB } from '../hooks/useInstantDB';
 
 const Gallery = () => {
-  const { data } = useLocalStorage();
+  const { data } = useInstantDB();
   const [selectedImage, setSelectedImage] = useState(null);
 
   const validGalleryItems = data.gallery.filter(item => item.src);

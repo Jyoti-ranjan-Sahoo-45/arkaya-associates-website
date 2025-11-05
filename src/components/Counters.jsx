@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Award, Users, Zap, Calendar } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useInstantDB } from '../hooks/useInstantDB';
 
 const Counters = () => {
-  const { data } = useLocalStorage();
+  const { data } = useInstantDB();
   const [counters, setCounters] = useState({
     projects: 0,
     clients: 0,

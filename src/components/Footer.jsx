@@ -1,8 +1,8 @@
 import { Sun, Mail, Phone, MapPin } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useInstantDB } from '../hooks/useInstantDB';
 
 const Footer = () => {
-  const { data } = useLocalStorage();
+  const { data } = useInstantDB();
 
   return (
     <footer 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Upload, X, Eye } from 'lucide-react';
-import { fileToBase64 } from '../../hooks/useLocalStorage';
+import { fileToBase64 } from '../../hooks/useInstantDB';
 
 const ImageUploader = ({ currentImage, onUpload, label = "Upload Image" }) => {
   const [preview, setPreview] = useState(currentImage || '');

@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import { Award, CheckCircle, Users, Zap } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useInstantDB } from '../hooks/useInstantDB';
 
 const About = () => {
-  const { data } = useLocalStorage();
+  const { data } = useInstantDB();
 
   const features = [
     { icon: Award, title: 'ISO Certified', desc: 'Quality management standards' },

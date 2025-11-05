@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Sun } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useInstantDB } from '../hooks/useInstantDB';
 
 const Hero = () => {
-  const { data } = useLocalStorage();
+  const { data } = useInstantDB();
 
   const scrollToContact = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });

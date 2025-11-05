@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Mail, Phone, MapPin, Globe } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useInstantDB } from '../hooks/useInstantDB';
 
 const ContactForm = () => {
-  const { data } = useLocalStorage();
+  const { data } = useInstantDB();
   const [formData, setFormData] = useState({
     name: '',
     email: '',

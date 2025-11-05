@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import { MapPin, Zap } from 'lucide-react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useInstantDB } from '../hooks/useInstantDB';
 
 const Projects = () => {
-  const { data } = useLocalStorage();
+  const { data } = useInstantDB();
 
   return (
     <section 

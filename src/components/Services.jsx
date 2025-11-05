@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useInstantDB } from '../hooks/useInstantDB';
 
 const Services = () => {
-  const { data } = useLocalStorage();
+  const { data } = useInstantDB();
 
   return (
     <section 
