@@ -16,8 +16,27 @@ export const useInstantDB = () => {
       data,
       isLoading,
       error,
-      siteDataCount: data?.siteData?.length || 0
+      siteDataCount: data?.siteData?.length || 0,
+      rawSiteData: data?.siteData,
+      hasData: !!data,
+      dataKeys: data ? Object.keys(data) : []
     });
+    
+    if (error) {
+      console.error('❌ Instantd Query Error:', error);
+    }
+    
+    if (data?.siteData && data.siteData.length > 0) {
+      console.log('✅ Found siteData records:', data.siteData);
+      data.siteData.forEach((record, index) => {
+        console.log(`  Record ${index}:`, {
+          id: record.id,
+          recordId: record.recordId,
+          hasData: !!record.data,
+          dataLength: record.data?.length || 0
+        });
+      });
+    }
   }, [data, isLoading, error]);
 
   // Get the main data record
@@ -91,29 +110,38 @@ export const useInstantDB = () => {
     
     // Save to Instantd
     try {
+      console.log('💾 Starting save to Instantd...');
+      console.log('💾 Current mainRecord:', mainRecord);
+      console.log('💾 Transaction object:', tx);
+      
       if (mainRecord?.id) {
         // Update existing
         console.log('🔄 Updating existing record:', mainRecord.id);
-        tx.update({
+        const updateData = {
           siteData: {
             id: mainRecord.id,
             recordId: 'main',
             data: dataString
           }
-        });
+        };
+        console.log('🔄 Update payload:', updateData);
+        tx.update(updateData);
         console.log('✅ Update transaction sent to Instantd');
         console.log('📤 Data sent:', { id: mainRecord.id, recordId: 'main', dataSize: dataString.length });
       } else {
         // Create new
-        console.log('🆕 Creating new record');
-        tx.insert({
+        console.log('🆕 Creating new record (no existing record found)');
+        const insertData = {
           siteData: {
             recordId: 'main',
             data: dataString
           }
-        });
+        };
+        console.log('🆕 Insert payload:', insertData);
+        tx.insert(insertData);
         console.log('✅ Insert transaction sent to Instantd');
         console.log('📤 Data sent:', { recordId: 'main', dataSize: dataString.length });
+        console.log('💡 Waiting for Instantd to process...');
       }
       
       // Wait for transaction to process

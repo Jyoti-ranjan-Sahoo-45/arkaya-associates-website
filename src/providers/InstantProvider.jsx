@@ -4,21 +4,38 @@ import { INSTANT_APP_ID } from '../config/instantdb';
 
 // Initialize Instantd - this must be done at module level
 let instantInit;
+let useQueryHook;
+let useTransactionHook;
+
 try {
   instantInit = init({
     appId: INSTANT_APP_ID,
   });
-  console.log('✅ Instantd initialized');
+  console.log('✅ Instantd initialized with app:', INSTANT_APP_ID);
+  
+  // Extract hooks from the init result
+  useQueryHook = instantInit.useQuery;
+  useTransactionHook = instantInit.useTransaction;
+  
+  if (!useQueryHook || !useTransactionHook) {
+    throw new Error('Instantd hooks not found in init result');
+  }
+  
+  console.log('✅ Instantd hooks extracted successfully');
 } catch (error) {
   console.error('❌ Error initializing Instantd:', error);
-  // Create fallback object
-  instantInit = {
-    useQuery: () => ({ data: null, isLoading: false, error: null }),
-    useTransaction: () => ({
+  // Create fallback hooks
+  useQueryHook = () => {
+    console.warn('⚠️ Instantd useQuery not available');
+    return { data: null, isLoading: false, error: null };
+  };
+  useTransactionHook = () => {
+    console.warn('⚠️ Instantd useTransaction not available');
+    return {
       insert: () => console.warn('Instantd not available'),
       update: () => console.warn('Instantd not available'),
       delete: () => console.warn('Instantd not available')
-    })
+    };
   };
 }
 
@@ -81,10 +98,6 @@ export const InstantProvider = ({ children }) => {
 };
 
 // Export hooks for use in other components
-export const useQuery = instantInit?.useQuery || (() => ({ data: null, isLoading: false, error: null }));
-export const useTransaction = instantInit?.useTransaction || (() => ({
-  insert: () => {},
-  update: () => {},
-  delete: () => {}
-}));
+export const useQuery = useQueryHook;
+export const useTransaction = useTransactionHook;
 
