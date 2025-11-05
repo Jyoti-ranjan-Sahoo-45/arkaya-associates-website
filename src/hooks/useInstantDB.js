@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useTransaction } from '../providers/InstantProvider';
 
 export const useInstantDB = () => {
-  // Query for ALL siteData records - this will auto-create the schema on first insert
+  // Query for ALL siteData records
   const { data, isLoading, error } = useQuery({
     siteData: {}
   });
